@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometric Distribution Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f1f3f5;
+            color: #212529;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .subtitle {
+            color: #868e96;
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            margin-bottom: 1.25rem;
+        }
+
+        .inputs {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            align-items: flex-start;
+        }
+
+        .field label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 0.4rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .field input {
+            display: block;
+            padding: 0.55rem 0.85rem;
+            border: 1.5px solid #dee2e6;
+            border-radius: 7px;
+            font-size: 1rem;
+            width: 180px;
+            outline: none;
+            transition: border-color 0.15s;
+            font-family: inherit;
+        }
+
+        .field input:focus { border-color: #4361ee; }
+
+        .field .hint {
+            font-size: 0.73rem;
+            color: #adb5bd;
+            margin-top: 0.3rem;
+        }
+
+        .field .error {
+            font-size: 0.73rem;
+            color: #fa5252;
+            margin-top: 0.3rem;
+            min-height: 1em;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 0.9rem 1rem;
+            border-left: 3px solid #4361ee;
+        }
+
+        .stat.accent { border-left-color: #f72585; }
+
+        .stat-label {
+            font-size: 0.72rem;
+            color: #868e96;
+            margin-bottom: 0.35rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .stat-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .chart-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .chart-sub {
+            font-size: 0.78rem;
+            color: #868e96;
+            margin-top: 0.15rem;
+        }
+
+        .legend {
+            display: flex;
+            gap: 0.9rem;
+            flex-wrap: wrap;
+            font-size: 0.76rem;
+            color: #495057;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .swatch {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Geometric Distribution Calculator</h1>
+    <p class="subtitle">Closed-form probability of an event occurring within N independent trials</p>
+
+    <div class="card">
+        <div class="inputs">
+            <div class="field">
+                <label for="prob-input">Probability of success per trial</label>
+                <input type="text" id="prob-input" value="1/6" placeholder="e.g. 0.1 or 1/6">
+                <div class="hint">Decimal or fraction (e.g. 0.05, 1/20)</div>
+                <div class="error" id="prob-error"></div>
+            </div>
+            <div class="field">
+                <label for="trials-input">Number of trials (N)</label>
+                <input type="number" id="trials-input" value="20" min="1" step="1">
+                <div class="hint">Cumulative probability up to trial N</div>
+                <div class="error"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="stats" id="stats"></div>
+    </div>
+
+    <div class="card">
+        <div class="chart-header">
+            <div>
+                <div class="chart-title">Probability Mass Function</div>
+                <div class="chart-sub">P(X = k) — probability of first success on exactly trial k</div>
+            </div>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="swatch" style="background:#c5cae9"></div>
+                    <span>&lt; 2.5th percentile</span>
+                </div>
+                <div class="legend-item">
+                    <div class="swatch" style="background:#4361ee"></div>
+                    <span>95% CI</span>
+                </div>
+                <div class="legend-item">
+                    <div class="swatch" style="background:#adb5bd"></div>
+                    <span>&gt; 97.5th percentile</span>
+                </div>
+                <div class="legend-item">
+                    <div class="swatch" style="background:#f72585"></div>
+                    <span>Your N</span>
+                </div>
+            </div>
+        </div>
+        <canvas id="chart" style="max-height:340px"></canvas>
+    </div>
+</div>
+
+<script>
+    let chart = null;
+
+    function parseProbability(str) {
+        str = str.trim();
+        if (str.includes('/')) {
+            const [a, b] = str.split('/');
+            const num = parseFloat(a), den = parseFloat(b);
+            if (!isNaN(num) && !isNaN(den) && den !== 0) return num / den;
+            return NaN;
+        }
+        return parseFloat(str);
+    }
+
+    // Geometric distribution (number of trials until first success, starting at 1)
+    // CDF: P(X <= k) = 1 - (1-p)^k
+    function cdf(p, k) {
+        return 1 - Math.pow(1 - p, k);
+    }
+
+    // PMF: P(X = k) = (1-p)^(k-1) * p
+    function pmf(p, k) {
+        return Math.pow(1 - p, k - 1) * p;
+    }
+
+    // Smallest k such that CDF(k) >= q
+    function quantile(p, q) {
+        if (p >= 1) return 1;
+        if (q <= 0) return 1;
+        if (q >= 1) return Infinity;
+        return Math.ceil(Math.log(1 - q) / Math.log(1 - p));
+    }
+
+    function pct(v, digits = 2) {
+        return (v * 100).toFixed(digits) + '%';
+    }
+
+    function fmt(v) {
+        return Number.isInteger(v) ? v : v.toFixed(2);
+    }
+
+    function update() {
+        const probStr = document.getElementById('prob-input').value;
+        const n = parseInt(document.getElementById('trials-input').value);
+        const errEl = document.getElementById('prob-error');
+
+        const p = parseProbability(probStr);
+
+        if (isNaN(p) || p <= 0 || p > 1) {
+            errEl.textContent = 'Enter a valid probability in (0, 1]';
+            return;
+        }
+        errEl.textContent = '';
+        if (isNaN(n) || n < 1) return;
+
+        const probWithinN = cdf(p, n);
+        const mean = 1 / p;
+        const median = Math.ceil(-Math.log(2) / Math.log(1 - p));
+        const ciLow  = quantile(p, 0.025);
+        const ciHigh = quantile(p, 0.975);
+
+        // Stats panel
+        document.getElementById('stats').innerHTML = `
+            <div class="stat accent">
+                <div class="stat-label">P(success within ${n} trial${n !== 1 ? 's' : ''})</div>
+                <div class="stat-value">${pct(probWithinN)}</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Expected trials (mean)</div>
+                <div class="stat-value">${fmt(mean)}</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Median trials</div>
+                <div class="stat-value">${median}</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">95% Probability Interval</div>
+                <div class="stat-value">[${ciLow}, ${ciHigh}]</div>
+            </div>
+        `;
+
+        // Chart data range: up to 99.9th percentile, min covers N and CI high
+        const p999 = Math.min(quantile(p, 0.999), 5000);
+        const maxK  = Math.min(Math.max(n + 5, ciHigh + 5, p999), 5000);
+
+        const labels = [], data = [], colors = [];
+
+        for (let k = 1; k <= maxK; k++) {
+            labels.push(k);
+            data.push(pmf(p, k));
+
+            if (k === n)        colors.push('#f72585');
+            else if (k < ciLow) colors.push('#c5cae9');
+            else if (k > ciHigh) colors.push('#adb5bd');
+            else                 colors.push('#4361ee');
+        }
+
+        if (chart) chart.destroy();
+
+        const ctx = document.getElementById('chart').getContext('2d');
+        chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    data,
+                    backgroundColor: colors,
+                    borderWidth: 0,
+                    barPercentage: 1.0,
+                    categoryPercentage: 0.88,
+                }]
+            },
+            options: {
+                responsive: true,
+                animation: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            title: ([c]) => `Trial k = ${c.label}`,
+                            label: (c) => {
+                                const k = parseInt(c.label);
+                                const region = k < ciLow ? 'below CI' : k > ciHigh ? 'above CI' : 'within 95% CI';
+                                return [
+                                    `P(X = ${k})  = ${pct(c.raw, 4)}`,
+                                    `P(X ≤ ${k}) = ${pct(cdf(p, k))}`,
+                                    `Region: ${region}`,
+                                ];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Trial number (k)', font: { size: 12 } },
+                        grid: { display: false },
+                        ticks: { maxTicksLimit: 24, autoSkip: true }
+                    },
+                    y: {
+                        title: { display: true, text: 'P(X = k)', font: { size: 12 } },
+                        grid: { color: '#f1f3f5' },
+                    }
+                }
+            }
+        });
+    }
+
+    document.getElementById('prob-input').addEventListener('input', update);
+    document.getElementById('trials-input').addEventListener('input', update);
+    update();
+</script>
+</body>
+</html>
